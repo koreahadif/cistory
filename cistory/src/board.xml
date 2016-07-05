@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="board">
+<typeAlias alias="Board" type="nhn.cistory.vo.Board"/>
+<typeAlias alias="History" type="nhn.cistory.vo.History"/>
+<typeAlias alias="Reply" type="nhn.cistory.vo.Reply"/>
+<!-- 회원데이터 입력 -->
+<insert id="insert" parameterClass="Board">
+    insert into Board (brd_num,	brd_ctg,	id,	nickname, grade, brd_title, brd_content,
+	htr_tag, brd_post_date, brd_view_count, brd_like_count, brd_hate_count) 
+    values (Board_ser.nextval,#brd_ctg#,#id#,#nickname#,#grade#, #brd_title#,
+    #brd_content#, #htr_tag#,SYSDATETIME, 0,0,0 )
+</insert>
+
+<!-- 태그 검색 -->
+<select id="selectTag" parameterClass="string" resultClass="History">
+	select * from history where htr_keyrd like '%' || #text# || '%'  order by history
+</select>
+
+<!-- 전체 글목록 보기 -->
+<select id="listfree" parameterClass="string" resultClass="Board">
+	SELECT to_char(brd_post_date,'mm"/"dd hh:mi')brd_post_date,brd_num,	brd_ctg,
+	id,	nickname, grade, brd_title, brd_content,
+	 brd_view_count, brd_like_count, brd_hate_count 
+	from Board where 	brd_ctg='자유게시판'
+	<isNotEmpty >
+	and
+ brd_title like '%' || #search# || '%'
+or
+brd_content like '%' || #search# || '%'
+</isNotEmpty>
+	order by brd_num desc	
+</select>
+
+<select id="listsuggest" parameterClass="string" resultClass="Board">
+SELECT to_char(brd_post_date,'mm"/"dd hh:mi')brd_post_date,brd_num,	brd_ctg,	
+	id,	nickname, grade, brd_title, brd_content,
+	 brd_view_count, brd_like_count, brd_hate_count 
+	from Board where brd_ctg='건의게시판'
+	<isNotEmpty >
+ and
+brd_title like '%' || #search# || '%'
+or
+brd_content like '%' || #search# || '%'
+</isNotEmpty>
+	order by brd_num desc
+</select>
+
+<select id="listfnq" parameterClass="string" resultClass="Board">
+	SELECT to_char(brd_post_date,'mm"/"dd hh:mi')brd_post_date,brd_num,	brd_ctg,	
+	id,	nickname, grade, brd_title, brd_content,
+	 brd_view_count, brd_like_count, brd_hate_count 
+	from Board where brd_ctg='질문과답변게시판'
+	<isNotEmpty >
+ and
+brd_title like '%' || #search# || '%'
+or
+brd_content like '%' || #search# || '%'
+</isNotEmpty>
+	order by brd_num desc
+</select>
+
+<!-- 페이지 링크갯수 카운트 -->
+<select id="total" parameterClass="java.util.HashMap" resultClass="int">
+	select count(*) from board where brd_ctg = #haction# 
+<isNotEmpty property="search" prepend="and" >
+brd_title like '%' || #search# || '%' 
+	or
+brd_content like '%' || #search# || '%'
+</isNotEmpty> 
+order by brd_num desc
+</select>
+
+
+
+
+<!-- 글 하나의 상세정보 보기  -->
+<select id="readNum" parameterClass="int" resultClass="Board">
+	SELECT to_char(brd_post_date,'mm"/"dd hh:mi')brd_post_date,brd_num,	brd_ctg,	
+	id,	nickname, grade, brd_title, brd_content, htr_tag,
+	 brd_view_count, brd_like_count, brd_hate_count  from Board where brd_num=#brd_num# 
+</select>
+
+<!-- 조회수 증가 -->
+<update id="viewcount" parameterClass="int">
+    update Board set brd_view_count=brd_view_count+1 where brd_num=#brd_num#
+ </update>
+ 
+ <!-- 좋아요 증가 -->
+<update id="likecount" parameterClass="int">
+    update Board set brd_like_count=brd_like_count+1 where brd_num=#brd_num#
+ </update>
+ 
+ <!-- 싫어요 증가 -->
+<update id="hatecount" parameterClass="int">
+    update Board set brd_hate_count=brd_hate_count+1 where brd_num=#brd_num#
+ </update>
+
+<!-- 글수정 -->
+<update id="update" parameterClass="Board">
+    update Board set htr_tag=#htr_tag#,brd_ctg=#brd_ctg#, brd_title=#brd_title#,brd_content=#brd_content# where brd_num=#brd_num#
+ </update>
+<!--  글 삭제-->
+<delete id="delete" parameterClass="int">
+	delete from Board where brd_num=#brd_num#
+</delete>
+
+<!-- 수정1 -->
+<select id="getInfo" parameterClass="int" resultClass="Board">
+	select * from Board where brd_num=#brd_num#
+</select>
+
+<!-- ==============================-->
+<!-- ========= 한줄 댓글 관련 ===========-->
+<!-- ==============================-->
+
+<!-- 게시물당 리플갯수 카운트 -->
+<select id="replycount" parameterClass="int" resultClass="int">
+	select count(*) from reply where brd_num=#brd_num#
+</select>
+
+
+<!-- 리플 목록  -->
+<select id="replyallList" parameterClass="int" resultClass="Reply">
+	select * from Reply where brd_num=#brd_num#
+</select>
+
+<!-- 리플 저정  -->
+<insert id="replywrite" parameterClass="Reply">
+    insert into Reply  (brd_num, id, nickname, grade, rp_post_date, rp_content)
+    values (#brd_num#, #id#, #nickname#, #grade#, SYSDATETIME, #rp_content#)
+</insert>
+
+
+<!-- 리플 한개 읽기 -->
+<select id="numSearch" parameterClass="int" resultClass="Reply">
+	select * from Reply where rp_num=#rp_num#
+</select>
+<!-- 리플 수정-->
+<update id="replyupdate" parameterClass="Reply">
+	update Reply set rp_content=#rp_content# where rp_num=#rp_num#
+</update>
+
+<!-- 수정1 -->
+<select id="replygetInfo" parameterClass="int" resultClass="Reply">
+	select * from Reply where rp_num=#rp_num#
+</select>
+
+<!-- 리플 삭제-->
+<delete id="replydelete" parameterClass="int">
+	delete from Reply where rp_num=#rp_num#
+</delete>
+
+</sqlMap>

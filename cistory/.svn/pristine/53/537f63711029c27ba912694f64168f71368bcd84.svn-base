@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="admin">
+<typeAlias alias="Member" type="nhn.cistory.vo.Member"/>
+<typeAlias alias="Obquestion" type="nhn.cistory.vo.Obquestion"/>
+<typeAlias alias="Subquestion" type="nhn.cistory.vo.Subquestion"/>
+<typeAlias alias="Quiz" type="nhn.cistory.vo.Quiz"/>
+<typeAlias alias="History" type="nhn.cistory.vo.History"/>
+
+<!-- 모든 회원 정보 반환 -->
+<select id="getAllMember" resultClass="Member">
+    select * from member ORDER BY join_date desc
+</select>
+
+<!-- 회원 등급 관리 -->
+<update id="modifyMemberGrade" parameterClass="Member">
+    update member set grade=#grade# 
+    	where id=#id#
+</update>
+
+<!-- 회원 탈퇴 관리 -->
+<delete id="deleteMember" parameterClass="String">
+    delete from member 
+    	where id=#id#
+</delete>
+
+<!-- 모든 객관식 문제 반환 -->
+<select id="getAllObquestion" resultClass="Obquestion">
+SELECT 
+	q.q_num, question, q_type, grade, age, wrong_count, set_count, point, q_exp,
+	ob_num, ob_desc, cho1, cho2, cho3, cho4, cho5, ob_sol
+FROM
+	question q, obquestion o
+WHERE 
+	q.q_num=o.q_num
+order by q.q_num desc
+</select>
+
+<!-- 객관식 문제 입력(Question) -->
+<insert id="insertObquestion1" parameterClass="Obquestion">
+    INSERT INTO question 
+    	VALUES (question_ser.nextval, #question#, '객관식', #grade#, #age#, 0, 0, #point#, #q_exp#)
+</insert>
+<!-- 객관식 문제 입력(Obquestion) -->
+<insert id="insertObquestion2" parameterClass="Obquestion">
+    INSERT INTO obquestion
+    	VALUES (NULL, question_ser.currval, #ob_desc#, #cho1#, #cho2#, #cho3#, #cho4#, #cho5#, #ob_sol#)
+</insert>
+
+<!-- 객관식 문제 수정(Question) -->
+<update id="modifyObquestion1" parameterClass="Obquestion">
+    update question 
+    	set question=#question#, grade=#grade#, age=#age#, point=#point#, q_exp=#q_exp#
+    where q_num=#q_num# 
+</update>
+<!-- 객관식 문제 수정(Obquestion) -->
+<update id="modifyObquestion2" parameterClass="Obquestion">
+    update obquestion
+    	set ob_sol=#ob_sol#
+    	<isNotNull prepend="," property="ob_desc"> ob_desc=#ob_desc# </isNotNull>
+    	<isNotNull prepend="," property="cho1"> cho1=#cho1# </isNotNull>
+    	<isNotNull prepend="," property="cho2"> cho2=#cho2# </isNotNull>
+    	<isNotNull prepend="," property="cho3"> cho3=#cho3# </isNotNull>
+    	<isNotNull prepend="," property="cho4"> cho4=#cho4# </isNotNull>
+    	<isNotNull prepend="," property="cho5"> cho5=#cho5# </isNotNull>
+	where q_num=#q_num#    	
+</update>
+
+<!-- 모든 주관식 문제 반환 -->
+<select id="getAllSubquestion" resultClass="Subquestion">
+SELECT 
+	q.q_num, question, q_type, grade, age, wrong_count, set_count, point, q_exp,
+	sub_num, sub_desc, sub_sol
+FROM
+	question q, subquestion s
+WHERE 
+	q.q_num=s.q_num
+order by q.q_num desc
+</select>
+
+<!-- 주관식 문제 입력(Question) -->
+<insert id="insertSubquestion1" parameterClass="Subquestion">
+    INSERT INTO question 
+    	VALUES (question_ser.nextval, #question#, '주관식', #grade#, #age#, 0, 0, #point#, #q_exp#)
+</insert>
+<!-- 주관식 문제 입력(Subquestion) -->
+<insert id="insertSubquestion2" parameterClass="Subquestion">
+    INSERT INTO subquestion
+    	VALUES (NULL, question_ser.currval, #sub_desc#, #sub_sol#)
+</insert>
+
+<!-- 주관식 문제 수정(Question) -->
+<update id="modifySubquestion1" parameterClass="Subquestion">
+    update question 
+    	set question=#question#, grade=#grade#, age=#age#, point=#point#, q_exp=#q_exp#    	
+    where q_num=#q_num# 
+</update>
+<!-- 주관식 문제 수정(Subquestion) -->
+<update id="modifySubquestion2" parameterClass="Subquestion">
+    update subquestion
+    	set sub_sol=#sub_sol#
+    	<isNotNull prepend="," property="sub_desc"> sub_desc=#sub_desc# </isNotNull>
+	where q_num=#q_num#    	
+</update>
+
+<!-- 문제 삭제 -->
+<delete id="deleteQuestion" parameterClass="int">
+    delete from question
+    	where q_num=#q_num#
+</delete>
+
+<!-- 모든 퀴즈 반환 -->
+<select id="getAllQuiz" resultClass="Quiz">
+SELECT 
+	h.htr_num, htr_keyrd, htr_age,
+	quiz_num, quiz, quiz_sol, quiz_desc
+FROM
+	history h, quiz q
+WHERE 
+	h.htr_num = q.htr_num
+order by quiz_num desc
+</select>
+
+<!-- 퀴즈 입력 -->
+<insert id="insertQuiz" parameterClass="Quiz">
+    INSERT INTO quiz
+    	VALUES (NULL, #htr_num#, #quiz#, #quiz_sol#, #quiz_desc#)
+</insert>
+
+<!-- 퀴즈 수정 -->
+<update id="modifyQuiz" parameterClass="Quiz">
+    update quiz
+    	set quiz=#quiz#, quiz_sol=#quiz_sol#, quiz_desc=#quiz_desc#
+	where quiz_num=#quiz_num#    	
+</update>
+
+<!-- 퀴즈 삭제 -->
+<delete id="deleteQuiz" parameterClass="int">
+    delete from quiz
+    	where quiz_num=#quiz_num#
+</delete>
+
+<!-- 모든 역사정보 반환 -->
+<select id="getAllHistory" resultClass="History">
+    select * from history
+    	ORDER BY htr_num desc
+</select>
+
+<!-- 역사정보 입력 -->
+<insert id="insertHistory" parameterClass="History">
+    INSERT INTO history
+    	VALUES (NULL, #htr_keyrd#, #htr_imguri#, #htr_desc#, #htr_tag#, #htr_type#, #htr_age#, #htr_date#)
+</insert>
+
+<!-- 역사정보 수정 -->
+<update id="modifyHistory" parameterClass="History">
+    update history
+    	set htr_keyrd=#htr_keyrd#, htr_desc=#htr_desc#, htr_tag=#htr_tag#, htr_type=#htr_type#, htr_age=#htr_age#, htr_date=#htr_date#
+    	<isNotNull prepend="," property="htr_imguri"> htr_imguri=#htr_imguri# </isNotNull>
+	where htr_num=#htr_num#    	
+</update>
+
+<!-- 역사정보 삭제 -->
+<delete id="deleteHistory" parameterClass="int">
+    delete from history
+    	where htr_num=#htr_num#
+</delete>
+
+</sqlMap>

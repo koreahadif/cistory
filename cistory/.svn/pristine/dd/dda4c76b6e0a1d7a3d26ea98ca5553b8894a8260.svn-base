@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="member">
+<typeAlias alias="Member" type="nhn.cistory.vo.Member"/>
+<typeAlias alias="MyNote" type="nhn.cistory.vo.MyNote"/>
+<typeAlias alias="WrongNote" type="nhn.cistory.vo.WrongNote"/>
+<typeAlias alias="ThmWrongNote" type="nhn.cistory.vo.ThmWrongNote"/>
+<typeAlias alias="Question" type="nhn.cistory.vo.Question"/>
+<typeAlias alias="Obquestion" type="nhn.cistory.vo.Obquestion"/>
+
+<!--  로그인 정보 반환 -->
+<select id ="login" parameterClass="Member" resultClass="Member">
+	select * from member
+		where id=#id# AND password=#password#
+</select>
+
+<!-- 아이디 중복 확인 -->
+<select id ="idCheck" parameterClass="String" resultClass="String">
+	select id from member
+		where id=#id#
+</select>
+
+<!-- 회원 가입 -->
+<insert id="join" parameterClass="Member">
+	insert into member
+		values(#id#, #password#, #name#, #nickName#, #grade#, #email#, sysdate, sysdate)    
+</insert>
+
+<!-- 회원 정보 수정 -->
+<update id="modify" parameterClass="Member">
+    update member
+    	set name=#name#, nickName=#nickName#, email=#email#, modify_date=sysdate
+    <isNotEmpty property="password">
+        , password=#password#
+    </isNotEmpty>
+    where id = #id#
+</update>
+
+<!-- 회원 탈퇴 -->
+<delete id="drop" parameterClass="String">
+    delete from member
+    	where id = #id#
+</delete>
+
+<!-- 나만의 노트 반환 -->
+<select id="getMyNote" parameterClass="String" resultClass="MyNote">
+	SELECT 
+		h.htr_num, htr_keyrd, htr_imguri, htr_desc, htr_tag, htr_type, htr_age, my_no_num, id, my_no_memo
+	FROM 
+		history h, mynote m
+	WHERE m.id = #id# AND h.htr_num = m.htr_num;
+</select>
+
+<!-- 나만의 노트 한 페이지 반환 -->
+<select id="getMyNotePage" parameterClass="Integer" resultClass="MyNote">
+	SELECT 
+		h.htr_num, htr_keyrd, htr_imguri, htr_desc, htr_tag, htr_type, htr_age, my_no_num, id, my_no_memo
+	FROM 
+		history h, mynote m
+	WHERE h.htr_num = m.htr_num AND my_no_num=#my_no_num#;
+</select>
+
+<!-- 오답 노트 반환 -->
+<select id="getWrongNote" parameterClass="String" resultClass="WrongNote">
+	SELECT 
+		t.test_num, t.id, score, test_start_time, tr.test_rslt_num, test_tmp_num, q_num, user_sol, wr_no_num, wr_no_memo
+	FROM 
+		test t, testresult tr, wrongnote w
+	WHERE t.id = #id# AND tr.test_rslt_num = w.test_rslt_num AND t.test_num = tr.test_num
+	GROUP BY t.test_num
+	order by t.test_num desc	
+</select>
+<select id="getWrongNote2" parameterClass="String" resultClass="WrongNote">
+	SELECT 
+		t.test_num, t.id, score, test_start_time, tr.test_rslt_num, test_tmp_num, q_num, user_sol, wr_no_num, wr_no_memo
+	FROM 
+		test t, testresult tr, wrongnote w
+	WHERE t.id = #id# AND tr.test_rslt_num = w.test_rslt_num AND t.test_num = tr.test_num
+	order by t.test_num desc	
+</select>
+<!-- 오답 노트 수정 -->
+<update id="modifyWrongNote" parameterClass="WrongNote">
+   update wrongnote 
+   		set wr_no_memo = #wr_no_memo#
+   where wr_no_num = #wr_no_num# 
+</update>
+
+<!-- 오답 노트 삭제 -->
+<delete id="deleteWrongNote" parameterClass="int">
+    delete from wrongnote
+    	where wr_no_num = #wr_no_num#
+</delete>
+
+<!-- 테마 오답 노트 반환 -->
+<select id="getThmWrongNote" parameterClass="ThmWrongNote" resultClass="ThmWrongNote">
+	SELECT 
+		q.q_num, q_type, grade, age
+		, wr_no_num, wr_no_memo, id, user_sol
+	FROM 
+		question q, thmwrongnote t
+	WHERE t.id = #id# AND q.q_num = t.q_num
+	<isNotEmpty prepend="AND" property="q_type"> q.q_type = #q_type#</isNotEmpty>
+	<isNotEmpty prepend="AND" property="age"> q.age = #age# </isNotEmpty>	
+	<isNotEmpty prepend="AND" property="grade"> q.grade = #grade# </isNotEmpty>
+	order by wr_no_num;
+</select>
+
+<!-- 테마 오답 노트 수정 -->
+<update id="modifyThmWrongNote" parameterClass="ThmWrongNote">
+   update thmwrongnote 
+   		set wr_no_memo = #wr_no_memo#
+   where wr_no_num = #wr_no_num# 
+</update>
+
+<!-- 테마 오답 노트 삭제 -->
+<delete id="deleteThmWrongNote" parameterClass="int">
+    delete from thmwrongnote
+    	where wr_no_num = #wr_no_num#
+</delete>
+
+<!-- 오답 노트에서 추천 문제 반환 -->
+<!-- Point Weight : 10
+	 Wrong Rate Weight : 20
+	 Wrong Median Rate : 0.5  
+	 Recommend Range : -2 ~ 2	-->
+<select id="getRecQuestion" parameterClass="Question" resultClass="Obquestion">
+SELECT 
+	q.q_num, question, q_type, grade, age, wrong_count, set_count, point, q_exp,
+	ob_num, ob_desc, cho1, cho2, cho3, cho4, cho5, ob_sol,
+	ABS(
+		( point*10 + CAST(CAST(wrong_count AS double)/CAST(set_count AS double) - 0.5 AS NUMERIC(3,2))*20 ) -
+		(SELECT point*10 +	CAST(CAST(wrong_count AS double)/CAST(set_count AS double) - 0.5 AS NUMERIC(3,2))*20 FROM question WHERE q_num=#q_num#)
+	) AS dv
+FROM question q, obquestion o
+	WHERE q_type='객관식' AND age=#age# AND set_count!=0 AND q.q_num=o.q_num AND q.q_num!=#q_num# AND
+	(
+		( point*10 + CAST(CAST(wrong_count AS double)/CAST(set_count AS double) - 0.5 AS NUMERIC(3,2))*20 ) -
+		(SELECT point*10 +	CAST(CAST(wrong_count AS double)/CAST(set_count AS double) - 0.5 AS NUMERIC(3,2))*20 FROM question WHERE q_num=#q_num#)
+	)	BETWEEN -2 AND 2 ORDER BY dv;
+</select>
+
+</sqlMap>

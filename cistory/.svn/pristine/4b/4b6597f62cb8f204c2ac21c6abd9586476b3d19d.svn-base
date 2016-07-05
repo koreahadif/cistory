@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="history">
+<typeAlias alias="History" type="nhn.cistory.vo.History"/>
+<!-- 역사번호로 역사 정보 반환 -->
+<select id="getHistory" parameterClass="int" resultClass="History">
+    select * from history
+    	where htr_num = #htr_num#
+</select>
+
+<!-- 퀴즈문제 들고오기 -->
+<select id="getQuiz" parameterClass="int" resultClass="nhn.cistory.vo.Quiz">
+SELECT htr_keyrd, quiz_num,quiz,quiz_sol,quiz_desc, quiz.htr_num
+FROM quiz, history
+WHERE quiz_num = #quiz_num# AND quiz.htr_num=history.htr_num
+</select>
+<!-- 타임라인 들고오기 -->
+<select id="getTList" parameterClass="string" resultClass="History">
+SELECT *
+FROM history
+WHERE htr_age = #htr_age#
+ORDER BY htr_date DESC
+</select>
+
+<!-- 카테고리 들고가기 -->
+<select id="getCList" parameterClass="string" resultClass="History">
+SELECT *
+FROM history
+	<isNotEmpty prepend="WHERE" >
+	htr_keyrd =#htr_keyrd#	
+	</isNotEmpty>
+</select>
+
+<!-- 나만의 노트에 추가 -->
+<insert id="insertMyNote" parameterClass="nhn.cistory.vo.MyNote">
+INSERT INTO mynote
+VALUES(NULL,#id#,#htr_num#,#my_no_memo#)
+</insert>
+
+<select id="getKeyword" parameterClass="string" resultClass="string">
+SELECT htr_keyrd
+FROM history
+WHERE htr_keyrd like '%'||#htr_keyrd#||'%'
+</select>
+
+<delete id="delMyNum" parameterClass="int">
+DELETE FROM
+	mynote
+WHERE my_no_num = #my_no_num#
+</delete>
+</sqlMap>

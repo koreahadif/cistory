@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="test">
+<typeAlias alias="Test" type="nhn.cistory.vo.Test"/>
+<typeAlias alias="Question" type="nhn.cistory.vo.Question"/>
+<typeAlias alias="Obquestion" type="nhn.cistory.vo.Obquestion"/>
+<typeAlias alias="Quesob" type="nhn.cistory.vo.Quesob"/>
+<typeAlias alias="Qobtr" type="nhn.cistory.vo.Qobtr"/>
+<typeAlias alias="Testresult" type="nhn.cistory.vo.Testresult"/>
+<typeAlias alias="Wrongnote" type="nhn.cistory.vo.WrongNote"/>
+<typeAlias alias="Subquestion" type="nhn.cistory.vo.Subquestion"/>
+<!-- 시험번호와 점수 들고오기 -->
+<select id="preSelect" parameterClass="string" resultClass="Question">
+SELECT
+	q_num, point
+FROM
+	question
+WHERE
+	grade = #grade# AND q_type='객관식'
+</select>
+
+<!-- 객관식 한문제 들고 오기 -->
+<!-- <select id="selectOneOb" parameterClass="int" resultClass="Quesob">
+SELECT 
+	Q.q_num, Q.question, Q.point,
+	O.ob_desc, O.cho1, O.cho2, O.cho3, O.cho4, O.cho5
+FROM
+	question Q, obquestion O
+WHERE
+	Q.q_num = #q_num# AND Q.q_num=O.q_num
+</select> -->
+
+<!-- 기출 오답 노트용 객관식 문제 정보 가져오기 -->
+<select id="getObquestions" parameterClass="list" resultClass="Obquestion">
+SELECT 
+	q.q_num, question, q_type, grade, age, wrong_count, set_count, point, q_exp,
+	ob_num, ob_desc, cho1, cho2, cho3, cho4, cho5, ob_sol
+FROM
+	question q, obquestion o
+WHERE 
+	q.q_num=o.q_num 
+	<iterate prepend="AND" open="(" close=")" conjunction="OR"> 
+	q.q_num=#q_NumList[]#
+	</iterate>
+</select>
+
+
+<!-- 50개의 정답과 해설, 내가 고른 답 들고오기 (오답률위해 오답횟수와출제횟수도 들고옴)-->
+<select id="selectAllTest" parameterClass="string" resultClass="Qobtr">
+SELECT
+	*
+FROM
+	question Q, obquestion O, testresult TR
+WHERE
+	TR.q_num=Q.q_num AND Q.q_num=O.q_num AND TR.test_num=#test_num#
+ORDER BY TR.test_tmp_num
+</select>
+
+<!-- 시험 점수 가져오기 -->
+<select id="selectTestInfo" parameterClass="int" resultClass="Test">
+SELECT
+	*
+FROM
+	test
+WHERE
+	test_num = #test_num#
+</select>
+<!-- 유저 시험 정보 가져오기 -->
+<select id="selectUserTest" parameterClass="string" resultClass="Test">
+SELECT
+	*
+FROM
+	test
+WHERE
+	id=#id#
+ORDER BY test_start_time;
+</select>
+<!-- 유저 시험하나당 통계정보 들고오기 -->
+<select id="selectTestDetail" parameterClass="int" resultClass="hashmap">
+SELECT (SELECT COUNT(testresult.q_num) FROM testresult, obquestion, question WHERE testresult.q_num=obquestion.q_num AND testresult.q_num = question.q_num AND obquestion.ob_sol = testresult.user_sol AND question.point = 3 AND testresult.test_num=#test_num#) corrThree
+, (SELECT COUNT(testresult.q_num) FROM testresult, question WHERE testresult.q_num = question.q_num AND question.point = 3 AND testresult.test_num=#test_num#) countThree
+,(SELECT COUNT(testresult.q_num) FROM testresult, obquestion, question WHERE testresult.q_num=obquestion.q_num AND testresult.q_num = question.q_num AND obquestion.ob_sol = testresult.user_sol AND question.point = 2 AND testresult.test_num=#test_num#) corrTwo
+, (SELECT COUNT(testresult.q_num) FROM testresult, question WHERE testresult.q_num = question.q_num AND question.point = 2 AND testresult.test_num=#test_num#) countTwo
+,(SELECT COUNT(testresult.q_num) FROM testresult, obquestion, question WHERE testresult.q_num=obquestion.q_num AND testresult.q_num = question.q_num AND obquestion.ob_sol = testresult.user_sol AND question.point = 1 AND testresult.test_num=#test_num#) corrOne
+, (SELECT COUNT(testresult.q_num) FROM testresult, question WHERE testresult.q_num = question.q_num AND question.point = 1 AND testresult.test_num=#test_num#) countOne
+,(SELECT COUNT(testresult.q_num) FROM testresult, obquestion, question WHERE testresult.q_num=obquestion.q_num AND testresult.q_num = question.q_num AND obquestion.ob_sol = testresult.user_sol AND question.age='선사시대' AND testresult.test_num=#test_num#) corrSunsa
+, (SELECT COUNT(testresult.q_num) FROM testresult, question WHERE testresult.q_num = question.q_num AND question.age='선사시대'  AND testresult.test_num=#test_num#) countSunsa
+,(SELECT COUNT(testresult.q_num) FROM testresult, obquestion, question WHERE testresult.q_num=obquestion.q_num AND testresult.q_num = question.q_num AND obquestion.ob_sol = testresult.user_sol AND question.age='삼국시대' AND testresult.test_num=#test_num#) corrSamguk
+, (SELECT COUNT(testresult.q_num) FROM testresult, question WHERE testresult.q_num = question.q_num AND question.age='삼국시대'  AND testresult.test_num=#test_num#) countSamguk
+,(SELECT COUNT(testresult.q_num) FROM testresult, obquestion, question WHERE testresult.q_num=obquestion.q_num AND testresult.q_num = question.q_num AND obquestion.ob_sol = testresult.user_sol AND question.age='통일신라' AND testresult.test_num=#test_num#) corrSinra
+, (SELECT COUNT(testresult.q_num) FROM testresult, question WHERE testresult.q_num = question.q_num AND question.age='통일신라'  AND testresult.test_num=#test_num#) countSinra
+,(SELECT COUNT(testresult.q_num) FROM testresult, obquestion, question WHERE testresult.q_num=obquestion.q_num AND testresult.q_num = question.q_num AND obquestion.ob_sol = testresult.user_sol AND question.age='고려' AND testresult.test_num=#test_num#) corrGoryu
+, (SELECT COUNT(testresult.q_num) FROM testresult, question WHERE testresult.q_num = question.q_num AND question.age='고려'  AND testresult.test_num=#test_num#) countGoryu
+,(SELECT COUNT(testresult.q_num) FROM testresult, obquestion, question WHERE testresult.q_num=obquestion.q_num AND testresult.q_num = question.q_num AND obquestion.ob_sol = testresult.user_sol AND question.age='조선' AND testresult.test_num=#test_num#) corrChosun
+, (SELECT COUNT(testresult.q_num) FROM testresult, question WHERE testresult.q_num = question.q_num AND question.age='조선'  AND testresult.test_num=#test_num#) countChosun
+,(SELECT COUNT(testresult.q_num) FROM testresult, obquestion, question WHERE testresult.q_num=obquestion.q_num AND testresult.q_num = question.q_num AND obquestion.ob_sol = testresult.user_sol AND question.age='근대' AND testresult.test_num=#test_num#) corrRecent
+, (SELECT COUNT(testresult.q_num) FROM testresult, question WHERE testresult.q_num = question.q_num AND question.age='근대'  AND testresult.test_num=#test_num#) countRecent
+</select>
+<!-- INSERT -->
+<!-- 시험 시작시간 시험 종료시간 점수 저장하기(시험정보) -->
+<insert id="insertTime" parameterClass="Test">
+INSERT INTO
+	test
+VALUES(
+	test_ser.nextval, #id#, 0, 
+	#test_start_time#, #test_end_time#)
+</insert>
+<!-- 시험 결과 저장하기 -->
+<insert id="insertTestRslt" parameterClass="Testresult">
+INSERT INTO
+	testresult
+VALUES(
+	NULL, (SELECT test_num FROM test WHERE id=#id# AND test_start_time=#test_start_time#)
+	, #test_tmp_num#, #q_num#, #user_sol#)
+</insert>
+
+
+<!-- 문제정보 입력하기(두번의 INSERT) -->
+<insert id="insertQuestion1" parameterClass="Question">
+INSERT INTO
+	question
+VALUES(
+	question_ser.nextval, #question#, #q_type#,
+	#grade#, #age#, 0,0,#point#,#q_exp#)
+</insert>
+<insert id="insertQuestion2" parameterClass="Obquestion">
+INSERT INTO
+	obquestion
+VALUES(
+	null, question_ser.currval, #ob_desc#, 
+	#cho1#, #cho2#, #cho3#, #cho4#, #cho5#, #ob_sol#)
+</insert>
+
+<!-- ********** UPDATE ********** -->
+<!-- 점수 수정하기 -->
+<update id="updateScore" parameterClass="Test">
+UPDATE test
+SET score=#score#
+WHERE test_num = #test_num#
+</update>
+
+<!-- 오답횟수와 출제횟수 수정하기 -->
+<update id="updateSetCount" parameterClass="list">
+UPDATE question
+SET set_count = set_count+1
+WHERE
+	<iterate open="(" close=")" conjunction="OR"> 
+	q_num=#q_NumList[]#
+	</iterate>
+</update>
+
+<!-- 큰일났다 -->
+<update id="updateWrongCount" parameterClass="list">
+UPDATE question
+SET wrong_count = wrong_count+1
+WHERE
+	<iterate open="(" close=")" conjunction="OR"> 
+	q_num=#q_NumList[]#
+	</iterate>
+</update>
+
+<!-- 추가사항 v1.1 -->
+<!-- 점수의 수정을 위해 정답과 사용자의 답안만 들고옴 -->
+<select id="calcscore" parameterClass="int" resultClass="Qobtr">
+SELECT
+	O.q_num, O.ob_sol, TR.user_sol, Q.point
+FROM
+	obquestion O, testresult TR, question Q
+WHERE
+	TR.test_num = #test_num# AND TR.q_num = Q.q_num AND O.q_num = Q.q_num
+</select>
+
+
+<select id="gettestnum" parameterClass="Test" resultClass="int">
+SELECT test_num 
+FROM test 
+WHERE id=#id# AND test_start_time=#test_start_time#
+</select>
+
+<insert id="insertwn" parameterClass="Wrongnote">
+INSERT INTO wrongnote
+VALUES(NULL,#test_rslt_num#,#wr_no_memo#,#id#)
+</insert>
+
+<!-- 추가사항 v1.11 by ssong -->
+<!-- 시험 번호를 받아 오답 갯수를 반환 -->
+<select id="getWrongCnt" parameterClass="int" resultClass="int">
+SELECT 
+	COUNT(*)
+FROM 
+	testresult tr, obquestion o
+WHERE 
+	tr.test_num=#test_num# AND tr.q_num=o.q_num AND tr.user_sol != o.ob_sol
+</select>
+
+
+<!-- 시험 번호를 받아 오답 노트 페이지수를 반환 -->
+<select id="getWrongNoteCnt" parameterClass="int" resultClass="int">
+SELECT 
+	COUNT(*)
+FROM 
+	testresult tr, wrongnote w
+WHERE 
+	tr.test_num=#test_num# AND tr.test_rslt_num=w.test_rslt_num
+</select>
+
+
+<!-- 테마시험 제약조건 Q_num 들고오기 -->
+<select id="preTheme" parameterClass="hashmap" resultClass="hashmap">
+SELECT q_num "num", q_type "type"
+FROM question
+	<dynamic prepend="WHERE">
+	<isNotEmpty prepend="AND" property="q_type"> q_type = #q_type#</isNotEmpty>
+	<isNotEmpty prepend="AND" property="age"> age = #age# </isNotEmpty>	
+	<isNotEmpty prepend="AND" property="grade"> grade = #grade# </isNotEmpty>
+	</dynamic>
+</select>
+
+<!-- 주관식 한문제 들고 오기 -->
+<select id="selectOneSub" parameterClass="int" resultClass="Subquestion">
+SELECT question, point, q.q_num, sub_desc, sub_sol 
+FROM question q, subquestion s
+WHERE
+	q.q_num = #q_num# AND q.q_num=s.q_num
+</select>
+<!-- 한문제의 정답과 해설 들고오기(주관식) -->
+<select id="selectsubans" parameterClass="string" resultClass="Subquestion">
+SELECT S.sub_sol, Q.q_exp, Q.question, S.sub_desc, Q.point
+FROM subquestion S, question Q
+WHERE
+	S.q_num = Q.q_num AND Q.q_num = #q_num#
+</select>
+
+<!-- 한문제의 정답과 해설 들고오기(객관식) -->
+<select id="selectobans" parameterClass="string" resultClass="Obquestion">
+SELECT O.ob_sol, Q.q_exp, Q.question, Q.point, O.ob_desc, O.cho1, O.cho2, O.cho3, O.cho4, O.cho5
+FROM obquestion O, question Q
+WHERE
+	O.q_num = Q.q_num AND Q.q_num = #q_num#
+</select>
+
+<!-- 테마오답노트 입력 -->
+<insert id="insertThmWrNote" parameterClass="nhn.cistory.vo.ThmWrongNote">
+INSERT INTO thmwrongnote
+VALUES(NULL,#q_num#,#wr_no_memo#,#id#,#user_sol#)
+</insert>
+
+<!-- 추가사항 v1.12 by ssong -->
+<!-- 테마 오답 노트용 주관식 문제 정보 가져오기 -->
+<select id="getSubquestions" parameterClass="list" resultClass="Subquestion">
+SELECT 
+	q.q_num, question, q_type, grade, age, wrong_count, set_count, point, q_exp,
+	sub_num, sub_desc, sub_sol
+FROM
+	question q, subquestion s
+WHERE 
+	q.q_num=s.q_num 
+	<iterate prepend="AND" open="(" close=")" conjunction="OR"> 
+	q.q_num=#q_NumList[]#
+	</iterate>
+</select>
+</sqlMap>

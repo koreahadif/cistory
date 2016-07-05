@@ -1,0 +1,194 @@
+@import url(http://fonts.googleapis.com/earlyaccess/nanumbrushscript.css);
+@import url(http://fonts.googleapis.com/earlyaccess/nanumpenscript.css);
+#header {
+	width: 1170px;
+	height: 70px;
+	padding-bottom: 30px;
+}
+body {
+	min-height: 970px;
+}
+
+#space {
+	margin-top: 30px;
+}
+
+#wrapper {
+	padding-left: 20px;
+}
+
+.footer {
+	position: absolute;
+	height: 500px;
+	width: 95%;
+	overflow: hidden;
+}
+
+
+
+.fb_dialog_advanced{
+	position: fixed;
+}
+
+.answer{
+	float:right;
+}
+
+.userChart{
+	padding: 60px;
+	margin-bottom: 30px;
+	font-size: 18px;
+	font-weight: 200;
+	line-height: 30px;
+	color: inherit;
+	background-color: #d0e3f0;
+	-webkit-border-radius: 6px;
+	-moz-border-radius: 6px;
+	border-radius: 6px;
+	width: 800px;
+	height:540px;
+	overflow-y:scroll;
+}
+
+.jload {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    height:     100%;
+    width:      100%;
+    background: rgba( 255, 255, 255, .8 ) 
+                url('../../images/ajax-loader.gif') 
+                50% 50% 
+                no-repeat;
+}
+
+body.loading {
+    overflow: hidden;   
+}
+body.loading .jload {
+    display: block;
+}
+.table-bordered{
+	background-color:white;
+}
+
+.testreside {
+	top: 60px;
+}
+
+#testPage{
+	width:970px;
+	height:675px;
+}
+#testPage .turn-page{
+	background-color:white;
+}
+#testPage .cover{
+	background: #333 url(../../images/oldpaper.jpg);
+	background-size: cover;
+}
+
+#testPage .cover h1 {
+	text-align:center;
+	font-size:85px;
+	line-height:600px;
+	margin:0px;
+	font-family:'Nanum Brush Script', cursive;
+}
+
+#testPage .cover h2 {
+	text-align:right;
+	font-size:50px;
+	line-height:100px;
+	margin:0px;
+	font-family:'Nanum Brush Script', cursive;
+	position: relative;
+}
+#testPage .loader{
+	width:24px;
+	height:24px;
+	display:block;
+	position:absolute;
+	top:238px;
+	left:188px;
+}
+#testPage .odd{
+	background-image:-webkit-linear-gradient(right, #FFF 95%, #ddd 100%);
+	background-image:-moz-linear-gradient(right, #FFF 95%, #ddd 100%);
+	background-image:-o-linear-gradient(right, #FFF 95%, #ddd 100%);
+	background-image:-ms-linear-gradient(right, #FFF 95%, #ddd 100%);
+}
+#testPage .even{
+	background-image:-webkit-linear-gradient(right, #FFF 95%, #ddd 100%);
+	background-image:-moz-linear-gradient(right, #FFF 95%, #ddd 100%);
+	background-image:-o-linear-gradient(right, #FFF 95%, #ddd 100%);
+	background-image:-ms-linear-gradient(right, #FFF 95%, #ddd 100%);
+}
+.quesImg{
+	text-align:center;
+	max-height:175px;
+	top:400px;
+}
+.quesImg img{
+	max-height:175px;
+	max-width:170px;
+}
+
+
+/* by Ahn */
+.img-add{
+	height: 400px;
+	margin-top: 5px;
+	text-align: center;
+	clear:both;
+}
+.img-add img{
+	max-height: 400px;
+}
+
+.tile.hexa.text.grade{
+	font-family:'Nanum Pen Script', cursive;
+}
+
+#quiz-solution {
+	max-width:740px;
+	line-height:65px;
+	font-family:'Nanum Pen Script', cursive;
+	color:white;
+	font-size:60px;
+	margin-top:150px;
+
+}
+#quizmain {
+	margin-top:40px;
+	max-width:95%;
+}
+#quizsub {
+	font-size:5em;
+	text-align:start;
+	height: 70px;
+	font-family:'Nanum Pen Script', cursive;
+	color:white;}
+.quizox {
+	font-size:50em;
+	text-align:center;
+	font-family:'Nanum Pen Script', cursive;
+	color:white;
+}
+
+
+
+.footer-quiz {
+	position: absolute;
+}
+
+
+.btn-xlarge {
+  padding: 21px 45px;
+  font-size: 30px;
+  -webkit-border-radius: 6px;
+     -moz-border-radius: 6px;
+          border-radius: 6px;
+}

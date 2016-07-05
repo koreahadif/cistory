@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <!-- Our CSS stylesheet file -->
+        <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" />
+        <link rel="stylesheet" href="countdown/css/styles.css" />
+        <link rel="stylesheet" href="countdown/countdown/jquery.countdown.css" />
+    <body>
+		<div id="countdown"></div>
+		<script src="countdown/countdown/jquery.countdown.js"></script>
+		<script type="text/javascript">
+		$(function(){
+			var	ts = (new Date()).getTime() + 80*60*1000;		
+			$('#countdown').countdown({
+				timestamp	: ts,
+				callback	: function(days, hours, minutes, seconds){
+					if(days==0 && hours==0 && minutes==0 && seconds==0){
+						alert('Time\'s up');
+						fncSubmit();
+					}
+				}
+	
+			});
+		});
+		</script>
+
+    </body>
+</html>
+
